@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Search, SlidersHorizontal, X } from 'lucide-react'
-import { getProducts } from '../../api/products'
+import { useProducts } from '../../hooks/useProducts'
 import ProductCard from '../../Components/ProductCard/ProductCard'
 
 const sortOptions = [
@@ -13,10 +13,7 @@ const sortOptions = [
 ]
 
 export default function Products() {
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [retry, setRetry] = useState(0)
+  const { products, loading, error, retry } = useProducts()
 
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState('featured')
@@ -28,28 +25,6 @@ export default function Products() {
   useEffect(() => {
     setCategory(urlCategory)
   }, [urlCategory])
-
-  // Load products from the API
-  useEffect(() => {
-    let ignore = false
-    setLoading(true)
-    setError('')
-
-    getProducts()
-      .then((data) => {
-        if (!ignore) setProducts(data)
-      })
-      .catch((err) => {
-        if (!ignore) setError(err.message)
-      })
-      .finally(() => {
-        if (!ignore) setLoading(false)
-      })
-
-    return () => {
-      ignore = true
-    }
-  }, [retry])
 
   const categories = ['All', ...new Set(products.map((p) => p.category))]
 
@@ -100,7 +75,7 @@ export default function Products() {
         <p className="text-lg font-semibold text-stone-900">Something went wrong</p>
         <p className="mt-1 text-sm text-stone-500">We couldn't load the products.</p>
         <button
-          onClick={() => setRetry((r) => r + 1)}
+          onClick={retry}
           className="mt-6 rounded-full bg-stone-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-indigo-600"
         >
           Try again
@@ -167,10 +142,11 @@ export default function Products() {
             <button
               key={c}
               onClick={() => setCategory(c)}
-              className={`shrink-0 rounded-full px-5 py-2 text-sm font-medium transition ${category === c
+              className={`shrink-0 rounded-full px-5 py-2 text-sm font-medium transition ${
+                category === c
                   ? 'bg-stone-900 text-white'
                   : 'border border-stone-200 bg-white text-stone-600 hover:border-stone-400'
-                }`}
+              }`}
             >
               {c}
             </button>

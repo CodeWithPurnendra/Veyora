@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
-import { getProducts } from '../../api/products'
+import { useProducts } from '../../hooks/useProducts'
 import ProductCard from '../../Components/ProductCard/ProductCard'
 
 // Optional taglines. Any category not listed here gets the default one.
@@ -16,28 +15,7 @@ const taglines = {
 const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-')
 
 export default function Collections() {
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    let ignore = false
-
-    getProducts()
-      .then((data) => {
-        if (!ignore) setProducts(data)
-      })
-      .catch((err) => {
-        if (!ignore) setError(err.message)
-      })
-      .finally(() => {
-        if (!ignore) setLoading(false)
-      })
-
-    return () => {
-      ignore = true
-    }
-  }, [])
+  const { products, loading, error } = useProducts()
 
   // Build one collection per category straight from the product data
   const collections = [...new Set(products.map((p) => p.category))].map((name) => {

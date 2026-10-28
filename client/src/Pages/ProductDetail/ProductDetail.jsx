@@ -12,7 +12,8 @@ import {
   RefreshCw,
   ShieldCheck,
 } from 'lucide-react'
-import { getProductById, getProducts } from '../../api/products'
+import { getProductById } from '../../api/products'
+import { useProducts } from '../../hooks/useProducts'
 import ProductCard from '../../Components/ProductCard/ProductCard'
 import { useCart } from '../../Context/CartContext'
 
@@ -26,8 +27,10 @@ export default function ProductDetail() {
   const { id } = useParams()
   const { addToCart } = useCart()
 
+  // All products, used only for the "You might also like" section
+  const { products: allProducts } = useProducts()
+
   const [product, setProduct] = useState(null)
-  const [allProducts, setAllProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [retry, setRetry] = useState(0)
@@ -60,23 +63,6 @@ export default function ProductDetail() {
       ignore = true
     }
   }, [id, retry])
-
-  // Load all products for the "You might also like" section
-  useEffect(() => {
-    let ignore = false
-
-    getProducts()
-      .then((data) => {
-        if (!ignore) setAllProducts(data)
-      })
-      .catch(() => {
-        // Related products are optional, so we ignore this error
-      })
-
-    return () => {
-      ignore = true
-    }
-  }, [])
 
   // Loading screen
   if (loading) {
