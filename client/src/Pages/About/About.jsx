@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, Leaf, Heart, Sparkles, Truck } from 'lucide-react'
-import { products } from '../../Data/products'
+
+const introImages = [
+  'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600',
+  'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600',
+]
 
 const stats = [
   { value: '10k+', label: 'Happy customers' },
@@ -60,12 +64,12 @@ export default function About() {
 
         <div className="grid grid-cols-2 gap-4">
           <img
-            src={products[0].image}
+            src={introImages[0]}
             alt=""
             className="aspect-[3/4] w-full rounded-[2rem] object-cover"
           />
           <img
-            src={products[2].image}
+            src={introImages[1]}
             alt=""
             className="mt-10 aspect-[3/4] w-full rounded-[2rem] object-cover"
           />

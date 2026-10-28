@@ -1,7 +1,8 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Truck, ShieldCheck, RefreshCw } from 'lucide-react'
-import { products } from '../../Data/products';
-import ProductCard from '../../Components/ProductCard/ProductCard';
+import { getProducts } from '../../api/products'
+import ProductCard from '../../Components/ProductCard/ProductCard'
 
 const perks = [
     { icon: Truck, title: 'Free shipping', text: 'On all orders over $50' },
@@ -10,6 +11,29 @@ const perks = [
 ]
 
 export default function Home() {
+    const [products, setProducts] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState('')
+
+    useEffect(() => {
+        let ignore = false
+
+        getProducts()
+            .then((data) => {
+                if (!ignore) setProducts(data)
+            })
+            .catch((err) => {
+                if (!ignore) setError(err.message)
+            })
+            .finally(() => {
+                if (!ignore) setLoading(false)
+            })
+
+        return () => {
+            ignore = true
+        }
+    }, [])
+
     const featured = products.slice(0, 4)
 
     return (
@@ -91,11 +115,27 @@ export default function Home() {
                     </Link>
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                    {featured.map((p) => (
-                        <ProductCard key={p.id} product={p} />
-                    ))}
-                </div>
+                {loading ? (
+                    // Grey placeholder cards while loading
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                        {[...Array(4)].map((_, i) => (
+                            <div
+                                key={i}
+                                className="h-96 animate-pulse rounded-3xl border border-stone-200 bg-stone-100"
+                            />
+                        ))}
+                    </div>
+                ) : error ? (
+                    <p className="rounded-3xl border border-dashed border-stone-300 bg-white py-12 text-center text-stone-500">
+                        We couldn't load products right now. Please try again in a moment.
+                    </p>
+                ) : (
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                        {featured.map((p) => (
+                            <ProductCard key={p.id} product={p} />
+                        ))}
+                    </div>
+                )}
             </section>
         </div>
     )

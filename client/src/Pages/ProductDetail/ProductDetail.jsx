@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   ChevronRight,
@@ -12,9 +12,10 @@ import {
   RefreshCw,
   ShieldCheck,
 } from 'lucide-react'
-import { products } from '../../Data/products'
+import { getProductById, getProducts } from '../../api/products'
 import ProductCard from '../../Components/ProductCard/ProductCard'
 import { useCart } from '../../Context/CartContext'
+
 const perks = [
   { icon: Truck, text: 'Free shipping on orders over $50' },
   { icon: RefreshCw, text: '30-day easy returns' },
@@ -23,14 +24,79 @@ const perks = [
 
 export default function ProductDetail() {
   const { id } = useParams()
-  const product = products.find((p) => p.id === Number(id))
   const { addToCart } = useCart()
+
+  const [product, setProduct] = useState(null)
+  const [allProducts, setAllProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [retry, setRetry] = useState(0)
+
   const [quantity, setQuantity] = useState(1)
   const [liked, setLiked] = useState(false)
   const [added, setAdded] = useState(false)
 
-  // Product not found
-  if (!product) {
+  // Load the main product whenever the id changes (or the user retries)
+  useEffect(() => {
+    let ignore = false
+
+    setLoading(true)
+    setError(null)
+    setQuantity(1)
+    window.scrollTo(0, 0)
+
+    getProductById(id)
+      .then((data) => {
+        if (!ignore) setProduct(data)
+      })
+      .catch((err) => {
+        if (!ignore) setError(err)
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false)
+      })
+
+    return () => {
+      ignore = true
+    }
+  }, [id, retry])
+
+  // Load all products for the "You might also like" section
+  useEffect(() => {
+    let ignore = false
+
+    getProducts()
+      .then((data) => {
+        if (!ignore) setAllProducts(data)
+      })
+      .catch(() => {
+        // Related products are optional, so we ignore this error
+      })
+
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  // Loading screen
+  if (loading) {
+    return (
+      <div className="grid animate-pulse gap-10 lg:grid-cols-2 lg:gap-16">
+        <div className="aspect-square rounded-[2rem] bg-stone-100" />
+        <div className="space-y-4 py-8">
+          <div className="h-4 w-24 rounded bg-stone-100" />
+          <div className="h-10 w-3/4 rounded bg-stone-100" />
+          <div className="h-8 w-32 rounded bg-stone-100" />
+          <div className="h-24 w-full rounded bg-stone-100" />
+        </div>
+      </div>
+    )
+  }
+
+  // Not found (404 = no such product, 400 = invalid id like "abc")
+  const notFound = error && (error.status === 404 || error.status === 400)
+
+  if (notFound || (!error && !product)) {
     return (
       <div className="py-24 text-center">
         <p className="text-2xl font-bold text-stone-900">Product not found</p>
@@ -47,7 +113,24 @@ export default function ProductDetail() {
     )
   }
 
-  const related = products
+  // Any other error (server down, network problem, etc.)
+  if (error) {
+    return (
+      <div className="py-24 text-center">
+        <p className="text-2xl font-bold text-stone-900">Something went wrong</p>
+        <p className="mt-2 text-stone-500">We couldn't load this product.</p>
+        <button
+          onClick={() => setRetry((r) => r + 1)}
+          className="mt-6 rounded-full bg-stone-900 px-7 py-3 text-sm font-semibold text-white transition hover:bg-indigo-600"
+        >
+          Try again
+        </button>
+      </div>
+    )
+  }
+
+  // From here on, `product` is guaranteed to exist
+  const related = allProducts
     .filter((p) => p.category === product.category && p.id !== product.id)
     .slice(0, 4)
 
@@ -118,18 +201,20 @@ export default function ProductDetail() {
 
             {/* Stock status */}
             <p
-              className={`mt-5 flex items-center gap-2 text-sm font-medium ${!inStock ? 'text-red-600' : lowStock ? 'text-amber-600' : 'text-green-600'
-                }`}
+              className={`mt-5 flex items-center gap-2 text-sm font-medium ${
+                !inStock ? 'text-red-600' : lowStock ? 'text-amber-600' : 'text-green-600'
+              }`}
             >
               <span
-                className={`h-2 w-2 rounded-full ${!inStock ? 'bg-red-500' : lowStock ? 'bg-amber-500' : 'bg-green-500'
-                  }`}
+                className={`h-2 w-2 rounded-full ${
+                  !inStock ? 'bg-red-500' : lowStock ? 'bg-amber-500' : 'bg-green-500'
+                }`}
               />
               {!inStock
                 ? 'Out of stock'
                 : lowStock
-                  ? `Only ${product.stock} left in stock`
-                  : 'In stock'}
+                ? `Only ${product.stock} left in stock`
+                : 'In stock'}
             </p>
 
             {/* Quantity + actions */}
@@ -159,8 +244,9 @@ export default function ProductDetail() {
               <button
                 onClick={handleAddToCart}
                 disabled={!inStock}
-                className={`flex h-12 flex-1 items-center justify-center gap-2 rounded-full px-8 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:bg-stone-300 ${added ? 'bg-green-500' : 'bg-stone-900 hover:bg-indigo-600'
-                  }`}
+                className={`flex h-12 flex-1 items-center justify-center gap-2 rounded-full px-8 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:bg-stone-300 ${
+                  added ? 'bg-green-500' : 'bg-stone-900 hover:bg-indigo-600'
+                }`}
               >
                 {added ? <Check size={18} /> : <ShoppingBag size={18} />}
                 {added ? 'Added to cart' : 'Add to cart'}
