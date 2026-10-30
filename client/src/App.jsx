@@ -10,6 +10,11 @@ import OrderSuccess from './Pages/OrderSuccess/OrderSuccess';
 import About from './Pages/About/About';
 import Collections from './Pages/Collection/Collection';
 import Footer from './Components/Footer/Footer';
+import Auth from './Pages/Authentication/Auth';
+import Login from './Pages/Login/Login';
+import Register from './Pages/Register/Register';
+import ProtectedRoute from './Components/ProtectedRoute/ProtectedRoute';
+
 export default function App() {
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 pt-28 text-gray-900">
@@ -22,8 +27,13 @@ export default function App() {
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/about" element={<About />} />
           <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
+          <Route
+            path="/checkout"
+            element={<ProtectedRoute> <Checkout /> </ProtectedRoute>}/>
           <Route path="/order-success" element={<OrderSuccess />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
