@@ -3,16 +3,26 @@ import express from 'express';
 import cors from 'cors';
 import pool from './config/db.js';
 import productRouter from './routes/products.js';
+import authRouter from './routes/auth.js';
 
+if (!process.env.JWT_SECRET) {
+    console.error('JWT_SECRET is missing from .env. Server will not start.')
+    process.exit(1)
+}
 const app = express();
 
-app.use(express.json());
+// Middleware must be placed BEFORE defining routes so req.body is parsed correctly
 app.use(cors());
+app.use(express.json());
+
+// Routes
+app.use('/api/auth', authRouter);
 app.use('/api/products', productRouter);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok' })
 })
+
 app.get('/api/db-test', async (req, res) => {
     try {
         const result = await pool.query('SELECT NOW()')
@@ -22,6 +32,7 @@ app.get('/api/db-test', async (req, res) => {
         res.status(500).json({ error: 'Database connection failed' })
     }
 })
+
 const PORT = process.env.PORT || 5000
 
 app.listen(PORT, () => {
