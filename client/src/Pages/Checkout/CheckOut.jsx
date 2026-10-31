@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { ArrowLeft, CreditCard, Banknote, Lock } from 'lucide-react'
 import { useCart } from '../../Context/CartContext'
 import { useAuth } from '../../Context/AuthContext'
+import { createOrder } from '../../api/orders'
 
 const FREE_SHIPPING_AT = 50
 const SHIPPING_FEE = 5.99
@@ -41,7 +42,7 @@ function Field({ label, name, type = 'text', placeholder, className = '', value,
 
 export default function Checkout() {
   const { items, cartTotal, clearCart } = useCart()
-  const { user } = useAuth()
+  const { user, token, logout } = useAuth()
   const navigate = useNavigate()
 
   // Start with the logged-in person's name and email already filled in
@@ -51,6 +52,7 @@ export default function Checkout() {
     email: user?.email ?? '',
   }))
   const [errors, setErrors] = useState({})
+  const [serverError, setServerError] = useState('')
   const [payment, setPayment] = useState('card')
   const [submitting, setSubmitting] = useState(false)
 
@@ -80,8 +82,9 @@ export default function Checkout() {
     return e
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setServerError('')
 
     const found = validate()
     setErrors(found)
@@ -89,19 +92,29 @@ export default function Checkout() {
 
     setSubmitting(true)
 
-    // Placeholder: later this will be sent to our backend
-    const order = {
-      id: 'VEY-' + Math.random().toString(36).slice(2, 8).toUpperCase(),
-      items,
-      subtotal: cartTotal,
-      shipping,
-      total,
-      payment,
-      customer: form,
-    }
+    try {
+      // Only ids and quantities are sent. The server looks up the real prices.
+      const order = await createOrder(token, {
+        items: items.map((item) => ({ productId: item.id, quantity: item.quantity })),
+        shipping: form,
+        paymentMethod: payment,
+      })
 
-    navigate('/order-success', { state: { order } })
-    clearCart()
+      navigate('/order-success', { state: { order } })
+      clearCart()
+    } catch (err) {
+      // Login expired: log out, and ProtectedRoute sends them to /login and back here
+      if (err.status === 401) {
+        setSubmitting(false)
+        logout()
+        return
+      }
+
+      setServerError(
+        err.status ? err.message : "We couldn't reach the server. Please try again in a moment."
+      )
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -261,6 +274,15 @@ export default function Checkout() {
               <dd className="font-bold text-stone-900">${total.toFixed(2)}</dd>
             </div>
           </dl>
+
+          {serverError && (
+            <div
+              role="alert"
+              className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            >
+              {serverError}
+            </div>
+          )}
 
           <button
             type="submit"
