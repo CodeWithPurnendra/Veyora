@@ -4,6 +4,7 @@ import cors from 'cors';
 import pool from './config/db.js';
 import productRouter from './routes/products.js';
 import authRouter from './routes/auth.js';
+import orderRouter from './routes/order.js';
 
 if (!process.env.JWT_SECRET) {
     console.error('JWT_SECRET is missing from .env. Server will not start.')
@@ -11,13 +12,13 @@ if (!process.env.JWT_SECRET) {
 }
 const app = express();
 
-// Middleware must be placed BEFORE defining routes so req.body is parsed correctly
 app.use(cors());
 app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRouter);
 app.use('/api/products', productRouter);
+app.use('/api/orders', orderRouter);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok' })
