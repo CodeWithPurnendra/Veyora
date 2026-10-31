@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { ShoppingBag, Search, User, Menu, X, LogOut } from 'lucide-react'
+import { ShoppingBag, Search, User, Menu, X, LogOut, Package } from 'lucide-react'
 import { useCart } from '../../Context/CartContext'
 import { useAuth } from '../../Context/AuthContext'
 
@@ -118,6 +118,14 @@ export default function NavBar() {
                     <p className="truncate text-sm font-semibold text-stone-900">{user.name}</p>
                     <p className="truncate text-xs text-stone-500">{user.email}</p>
                   </div>
+                  <Link
+                    to="/orders"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex w-full items-center gap-2 px-4 py-3 text-sm text-stone-700 transition hover:bg-stone-50"
+                  >
+                    <Package size={16} />
+                    My orders
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="flex w-full items-center gap-2 px-4 py-3 text-sm text-stone-700 transition hover:bg-stone-50"
@@ -165,7 +173,7 @@ export default function NavBar() {
       <div
         className={`mx-auto mt-2 max-w-5xl origin-top overflow-hidden rounded-3xl border border-stone-200 bg-white/95 shadow-xl backdrop-blur-xl transition-all duration-300 md:hidden ${
           open
-            ? 'max-h-[28rem] scale-100 opacity-100'
+            ? 'max-h-[32rem] scale-100 opacity-100'
             : 'pointer-events-none max-h-0 scale-95 opacity-0'
         }`}
       >
@@ -194,6 +202,14 @@ export default function NavBar() {
                 <p className="truncate text-sm font-semibold text-stone-900">{user.name}</p>
                 <p className="truncate text-xs text-stone-500">{user.email}</p>
               </div>
+              <NavLink
+                to="/orders"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium text-stone-700 hover:bg-stone-100"
+              >
+                <Package size={16} />
+                My orders
+              </NavLink>
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2 rounded-2xl px-4 py-3 text-left text-sm font-medium text-stone-700 hover:bg-stone-100"

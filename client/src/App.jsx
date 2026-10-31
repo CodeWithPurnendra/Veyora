@@ -14,6 +14,7 @@ import Auth from './Pages/Authentication/Auth';
 import Login from './Pages/Login/Login';
 import Register from './Pages/Register/Register';
 import ProtectedRoute from './Components/ProtectedRoute/ProtectedRoute';
+import MyOrders from './Pages/MyOrders/MyOrders';
 
 export default function App() {
   return (
@@ -29,7 +30,13 @@ export default function App() {
           <Route path="/cart" element={<Cart />} />
           <Route
             path="/checkout"
-            element={<ProtectedRoute> <Checkout /> </ProtectedRoute>}/>
+            element={<ProtectedRoute> <Checkout /> </ProtectedRoute>} />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <MyOrders />
+              </ProtectedRoute>}/>
           <Route path="/order-success" element={<OrderSuccess />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/login" element={<Login />} />
