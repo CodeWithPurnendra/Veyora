@@ -6,6 +6,7 @@ import { verifyToken } from '../middleware/auth.js'
 const orderRouter = Router()
 
 const EMAIL_PATTERN = /^\S+@\S+\.\S+$/
+const ORDER_NUMBER_PATTERN = /^VEY-[0-9A-F]{6}$/
 const PAYMENT_METHODS = ['card', 'cod']
 const MAX_LINES = 50
 const MAX_QUANTITY = 20
@@ -23,11 +24,67 @@ const SHIPPING_FIELDS = {
   postalCode: 20,
 }
 
+// The columns we read from the orders table (money cast to numbers).
+// This is a fixed string, never built from user input.
+const ORDER_COLUMNS = `id, order_number, full_name, email, phone, address, city, postal_code,
+  subtotal::float, shipping::float, total::float,
+  payment_method, payment_status, status, created_at`
+
 // Builds an error that carries an HTTP status, so the catch block can reply with it
 function httpError(status, message) {
   const error = new Error(message)
   error.status = status
   return error
+}
+
+// Turns one orders row plus its items into the object we send to the browser.
+// The shape matches the order returned when an order is created.
+function formatOrder(order, items) {
+  return {
+    orderNumber: order.order_number,
+    createdAt: order.created_at,
+    status: order.status,
+    paymentStatus: order.payment_status,
+    paymentMethod: order.payment_method,
+    subtotal: order.subtotal,
+    shipping: order.shipping,
+    total: order.total,
+    shippingDetails: {
+      fullName: order.full_name,
+      email: order.email,
+      phone: order.phone,
+      address: order.address,
+      city: order.city,
+      postalCode: order.postal_code,
+    },
+    items: items.map((item) => ({
+      productId: item.product_id,
+      name: item.name,
+      image: item.image,
+      quantity: item.quantity,
+      price: item.price,
+    })),
+  }
+}
+
+// Loads the items for several orders at once, grouped by order id
+async function fetchItemsByOrder(orderIds) {
+  const { rows } = await pool.query(
+    `SELECT order_id, product_id, name, price::float, quantity, image
+     FROM order_items
+     WHERE order_id = ANY($1::int[])
+     ORDER BY id`,
+    [orderIds]
+  )
+
+  const grouped = new Map()
+
+  for (const row of rows) {
+    if (!grouped.has(row.order_id)) grouped.set(row.order_id, [])
+    grouped.get(row.order_id).push(row)
+  }
+
+  return grouped
 }
 
 // Checks the request body. Returns { error } or the cleaned-up order data.
@@ -104,6 +161,7 @@ function validateOrder(body) {
   }
 }
 
+// Create an order
 orderRouter.post('/', verifyToken, async (req, res) => {
   const result = validateOrder(req.body)
 
@@ -244,6 +302,71 @@ orderRouter.post('/', verifyToken, async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to place order' })
   } finally {
     client?.release()
+  }
+})
+
+// List the logged-in person's orders, newest first
+orderRouter.get('/', verifyToken, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT ${ORDER_COLUMNS}
+       FROM orders
+       WHERE user_id = $1
+       ORDER BY created_at DESC
+       LIMIT 50`,
+      [req.user.id]
+    )
+
+    // No orders yet is a normal result, not an error
+    if (rows.length === 0) {
+      return res.json({ success: true, orders: [] })
+    }
+
+    const itemsByOrder = await fetchItemsByOrder(rows.map((order) => order.id))
+
+    res.json({
+      success: true,
+      orders: rows.map((order) => formatOrder(order, itemsByOrder.get(order.id) ?? [])),
+    })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ success: false, message: 'Failed to load orders' })
+  }
+})
+
+// Show one of the logged-in person's orders
+orderRouter.get('/:orderNumber', verifyToken, async (req, res) => {
+  try {
+    const { orderNumber } = req.params
+
+    // Anything that can't be an order number is simply "not found"
+    if (!ORDER_NUMBER_PATTERN.test(orderNumber)) {
+      return res.status(404).json({ success: false, message: 'Order not found' })
+    }
+
+    // The user_id condition makes sure people can only see their OWN orders.
+    // Someone else's order looks exactly like one that doesn't exist (404).
+    const { rows } = await pool.query(
+      `SELECT ${ORDER_COLUMNS}
+       FROM orders
+       WHERE order_number = $1 AND user_id = $2`,
+      [orderNumber, req.user.id]
+    )
+
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Order not found' })
+    }
+
+    const order = rows[0]
+    const itemsByOrder = await fetchItemsByOrder([order.id])
+
+    res.json({
+      success: true,
+      order: formatOrder(order, itemsByOrder.get(order.id) ?? []),
+    })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ success: false, message: 'Failed to load order' })
   }
 })
 
