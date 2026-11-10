@@ -4,9 +4,10 @@ import { ArrowLeft, CreditCard, Banknote, Lock } from 'lucide-react'
 import { useCart } from '../../Context/CartContext'
 import { useAuth } from '../../Context/AuthContext'
 import { createOrder } from '../../api/orders'
+import { formatPrice } from '../../utils/formatPrice'
 
-const FREE_SHIPPING_AT = 50
-const SHIPPING_FEE = 5.99
+const FREE_SHIPPING_AT = 4000
+const SHIPPING_FEE = 500
 
 const emptyForm = {
   fullName: '',
@@ -163,7 +164,7 @@ export default function Checkout() {
                 label="Phone"
                 name="phone"
                 type="tel"
-                placeholder="+1 555 123 4567"
+                placeholder="+91 98765 43210"
                 value={form.phone}
                 onChange={handleChange}
                 error={errors.phone}
@@ -188,7 +189,7 @@ export default function Checkout() {
               <Field
                 label="Postal code"
                 name="postalCode"
-                placeholder="12345"
+                placeholder="110001"
                 value={form.postalCode}
                 onChange={handleChange}
                 error={errors.postalCode}
@@ -249,10 +250,10 @@ export default function Checkout() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-stone-900">{item.name}</p>
-                  <p className="text-xs text-stone-500">${item.price.toFixed(2)} each</p>
+                  <p className="text-xs text-stone-500">{formatPrice(item.price)} each</p>
                 </div>
                 <p className="text-sm font-semibold text-stone-900">
-                  ${(item.price * item.quantity).toFixed(2)}
+                  {formatPrice(item.price * item.quantity)}
                 </p>
               </li>
             ))}
@@ -261,17 +262,17 @@ export default function Checkout() {
           <dl className="mt-6 space-y-3 border-t border-stone-200 pt-5 text-sm">
             <div className="flex justify-between">
               <dt className="text-stone-500">Subtotal</dt>
-              <dd className="font-medium text-stone-900">${cartTotal.toFixed(2)}</dd>
+              <dd className="font-medium text-stone-900">{formatPrice(cartTotal)}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-stone-500">Shipping</dt>
               <dd className="font-medium text-stone-900">
-                {shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}
+                {shipping === 0 ? 'Free' : formatPrice(shipping)}
               </dd>
             </div>
             <div className="flex justify-between border-t border-stone-200 pt-4 text-base">
               <dt className="font-semibold text-stone-900">Total</dt>
-              <dd className="font-bold text-stone-900">${total.toFixed(2)}</dd>
+              <dd className="font-bold text-stone-900">{formatPrice(total)}</dd>
             </div>
           </dl>
 

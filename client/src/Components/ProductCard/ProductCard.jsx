@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Heart, Plus, Check, Star } from 'lucide-react'
 import { useCart } from '../../Context/CartContext'
+import { formatPrice } from '../../utils/formatPrice'
+
 export default function ProductCard({ product }) {
   const [liked, setLiked] = useState(false)
   const [added, setAdded] = useState(false)
@@ -65,14 +67,15 @@ export default function ProductCard({ product }) {
         {/* Price + add button */}
         <div className="mt-4 flex items-center justify-between">
           <p className="text-lg font-bold text-stone-900">
-            ${product.price.toFixed(2)}
+            {formatPrice(product.price)}
           </p>
 
           <button
             onClick={handleAddToCart}
             aria-label="Add to cart"
-            className={`flex h-10 w-10 items-center justify-center rounded-full text-white transition-all duration-300 ${added ? 'scale-110 bg-green-500' : 'bg-stone-900 hover:bg-indigo-600'
-              }`}
+            className={`flex h-10 w-10 items-center justify-center rounded-full text-white transition-all duration-300 ${
+              added ? 'scale-110 bg-green-500' : 'bg-stone-900 hover:bg-indigo-600'
+            }`}
           >
             {added ? <Check size={18} /> : <Plus size={18} />}
           </button>

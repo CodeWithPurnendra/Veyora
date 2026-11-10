@@ -16,9 +16,10 @@ import { getProductById } from '../../api/products'
 import { useProducts } from '../../hooks/useProducts'
 import ProductCard from '../../Components/ProductCard/ProductCard'
 import { useCart } from '../../Context/CartContext'
+import { formatPrice } from '../../utils/formatPrice'
 
 const perks = [
-  { icon: Truck, text: 'Free shipping on orders over $50' },
+  { icon: Truck, text: 'Free shipping on orders over ₹999' },
   { icon: RefreshCw, text: '30-day easy returns' },
   { icon: ShieldCheck, text: 'Secure checkout' },
 ]
@@ -180,7 +181,7 @@ export default function ProductDetail() {
             </div>
 
             <p className="mt-6 text-3xl font-bold text-stone-900">
-              ${product.price.toFixed(2)}
+              {formatPrice(product.price)}
             </p>
 
             <p className="mt-4 leading-relaxed text-stone-600">{product.description}</p>
@@ -254,7 +255,7 @@ export default function ProductDetail() {
             {/* Total */}
             {inStock && quantity > 1 && (
               <p className="mt-3 text-sm text-stone-500">
-                Total: ${(product.price * quantity).toFixed(2)}
+                Total: {formatPrice(product.price * quantity)}
               </p>
             )}
 

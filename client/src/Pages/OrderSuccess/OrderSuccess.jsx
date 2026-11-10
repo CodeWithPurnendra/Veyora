@@ -1,5 +1,6 @@
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { Check, Package, Mail, ArrowRight } from 'lucide-react'
+import { formatPrice } from '../../utils/formatPrice'
 
 export default function OrderSuccess() {
   const { state } = useLocation()
@@ -53,7 +54,7 @@ export default function OrderSuccess() {
                 <p className="text-xs text-stone-500">Qty: {item.quantity}</p>
               </div>
               <p className="text-sm font-semibold text-stone-900">
-                ${(item.price * item.quantity).toFixed(2)}
+                {formatPrice(item.price * item.quantity)}
               </p>
             </li>
           ))}
@@ -62,17 +63,17 @@ export default function OrderSuccess() {
         <dl className="mt-6 space-y-3 border-t border-stone-200 pt-5 text-sm">
           <div className="flex justify-between">
             <dt className="text-stone-500">Subtotal</dt>
-            <dd className="font-medium text-stone-900">${order.subtotal.toFixed(2)}</dd>
+            <dd className="font-medium text-stone-900">{formatPrice(order.subtotal)}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-stone-500">Shipping</dt>
             <dd className="font-medium text-stone-900">
-              {order.shipping === 0 ? 'Free' : `$${order.shipping.toFixed(2)}`}
+              {order.shipping === 0 ? 'Free' : formatPrice(order.shipping)}
             </dd>
           </div>
           <div className="flex justify-between border-t border-stone-200 pt-4 text-base">
             <dt className="font-semibold text-stone-900">Total</dt>
-            <dd className="font-bold text-stone-900">${order.total.toFixed(2)}</dd>
+            <dd className="font-bold text-stone-900">{formatPrice(order.total)}</dd>
           </div>
         </dl>
 

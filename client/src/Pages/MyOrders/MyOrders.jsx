@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Package, ArrowRight } from 'lucide-react'
 import { useAuth } from '../../Context/AuthContext'
 import { getMyOrders } from '../../api/orders'
+import { formatPrice } from '../../utils/formatPrice'
 
 const statusStyles = {
   placed: 'bg-indigo-50 text-indigo-700',
@@ -38,7 +39,6 @@ export default function MyOrders() {
       })
       .catch((err) => {
         if (ignore) return
-        // Login expired: log out, and ProtectedRoute sends them to /login
         if (err.status === 401) {
           logout()
           return
@@ -54,8 +54,6 @@ export default function MyOrders() {
     return () => {
       ignore = true
     }
-    // logout is stable enough here, and we only want to reload on a new token or retry
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, attempt])
 
   // Loading skeleton
@@ -154,11 +152,11 @@ export default function MyOrders() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-stone-900">{item.name}</p>
                     <p className="text-xs text-stone-500">
-                      Qty {item.quantity} · ${item.price.toFixed(2)} each
+                      Qty {item.quantity} · {formatPrice(item.price)} each
                     </p>
                   </div>
                   <p className="text-sm font-semibold text-stone-900">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    {formatPrice(item.price * item.quantity)}
                   </p>
                 </li>
               ))}
@@ -178,7 +176,7 @@ export default function MyOrders() {
               </div>
               <div className="text-right">
                 <p className="text-xs text-stone-500">Total</p>
-                <p className="text-lg font-bold text-stone-900">${order.total.toFixed(2)}</p>
+                <p className="text-lg font-bold text-stone-900">{formatPrice(order.total)}</p>
               </div>
             </div>
           </li>

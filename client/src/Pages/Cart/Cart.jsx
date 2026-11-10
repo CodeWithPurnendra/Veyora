@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Truck } from 'lucide-react'
 import { useCart } from '../../Context/CartContext'
+import { formatPrice } from '../../utils/formatPrice'
 
-const FREE_SHIPPING_AT = 50
-const SHIPPING_FEE = 5.99
+const FREE_SHIPPING_AT = 999
+const SHIPPING_FEE = 79
 
 export default function Cart() {
   const { items, updateQuantity, removeFromCart, clearCart, cartCount, cartTotal } = useCart()
@@ -79,7 +80,7 @@ export default function Cart() {
                         {item.name}
                       </h3>
                     </Link>
-                    <p className="mt-1 text-sm text-stone-500">${item.price.toFixed(2)} each</p>
+                    <p className="mt-1 text-sm text-stone-500">{formatPrice(item.price)} each</p>
                   </div>
 
                   <button
@@ -115,7 +116,7 @@ export default function Cart() {
 
                   {/* Line total */}
                   <p className="text-lg font-bold text-stone-900">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    {formatPrice(item.price * item.quantity)}
                   </p>
                 </div>
               </div>
@@ -139,7 +140,7 @@ export default function Cart() {
             <p className="flex items-center gap-2 text-sm text-stone-600">
               <Truck size={16} className="text-indigo-600" />
               {remaining > 0
-                ? `Add $${remaining.toFixed(2)} more for free shipping`
+                ? `Add ${formatPrice(remaining)} more for free shipping`
                 : 'You got free shipping!'}
             </p>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-stone-200">
@@ -153,17 +154,17 @@ export default function Cart() {
           <dl className="mt-6 space-y-3 text-sm">
             <div className="flex justify-between">
               <dt className="text-stone-500">Subtotal</dt>
-              <dd className="font-medium text-stone-900">${cartTotal.toFixed(2)}</dd>
+              <dd className="font-medium text-stone-900">{formatPrice(cartTotal)}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-stone-500">Shipping</dt>
               <dd className="font-medium text-stone-900">
-                {shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}
+                {shipping === 0 ? 'Free' : formatPrice(shipping)}
               </dd>
             </div>
             <div className="flex justify-between border-t border-stone-200 pt-4 text-base">
               <dt className="font-semibold text-stone-900">Total</dt>
-              <dd className="font-bold text-stone-900">${total.toFixed(2)}</dd>
+              <dd className="font-bold text-stone-900">{formatPrice(total)}</dd>
             </div>
           </dl>
 
