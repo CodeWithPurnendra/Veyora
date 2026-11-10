@@ -81,8 +81,7 @@ A full-stack e-commerce web application with product browsing, a shopping cart, 
 ### 1. Clone the repositories
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/veyora.git client
-git clone https://github.com/YOUR-USERNAME/veyora-server.git server
+https://github.com/CodeWithPurnendra/Veyora.git
 ```
 
 ### 2. Set up the database
@@ -259,5 +258,5 @@ server/
 
 **YOUR NAME**
 
-- GitHub: [@YOUR-USERNAME](https://github.com/YOUR-USERNAME)
+- GitHub: https://github.com/CodeWithPurnendra
 - Twitter(X): @PurnendraN06
