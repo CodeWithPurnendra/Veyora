@@ -1,4 +1,4 @@
-# Veyora./
+# Veyora
 
 A full-stack e-commerce web application with product browsing, a shopping cart, user accounts, and order management. Built with React, Tailwind CSS, Node.js, Express, and PostgreSQL.
 
