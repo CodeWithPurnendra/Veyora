@@ -22,7 +22,8 @@ const Auth = () => {
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
 
     try {
-      const response = await fetch(`http://localhost:5000${endpoint}`, {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`{API_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,7 +53,7 @@ const Auth = () => {
   return (
     <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
       <h2>{isLogin ? 'Login' : 'Register'}</h2>
-      
+
       <form onSubmit={handleSubmit}>
         {!isLogin && (
           <div style={{ marginBottom: '15px' }}>
